@@ -335,7 +335,7 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for det
 
 ## Security
 
-If you discover any security-related issues, please email kiamars@example.com instead of using the issue tracker.
+If you discover any security-related issues, please email kiamars.mirzaee@gmail.com instead of using the issue tracker.
 
 ## Credits
 
