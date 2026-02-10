@@ -1,0 +1,27 @@
+{
+    "name": "kiamars/laravel-rbac-architect",
+    "description": "Flexible polymorphic RBAC system for Laravel with context and temporal support.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kiamars Mirzaee"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kiamars\\RbacArchitect\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Kiamars\\RbacArchitect\\Providers\\RbacServiceProvider"
+            ]
+        }
+    }
+}
