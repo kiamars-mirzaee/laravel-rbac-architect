@@ -9,12 +9,14 @@ A flexible and powerful Role-Based Access Control (RBAC) system for Laravel with
 ## Features
 
 - 🎯 **Context-Based Permissions** - Scope roles and permissions to specific models (Projects, Organizations, Sites)
+- 🏢 **Hierarchical Organizations** - Support for organization hierarchies with permission inheritance
 - ⏰ **Temporal Logic** - Set activation and expiration dates for role/permission assignments
 - 👑 **Root Mode** - Built-in superuser support that bypasses all permission checks
 - 🔄 **Polymorphic Relationships** - Apply permissions to any model type
 - 🛡️ **Middleware Protection** - Easy route protection with context-aware middleware
 - 🎨 **Flexible Architecture** - Easy to extend and customize
 - 📊 **Many-to-Many Support** - Users can have multiple roles and permissions
+- 👥 **User Types** - Support for system users and site users
 
 ## Installation
 
@@ -190,6 +192,78 @@ if ($user->hasAllPermissions(['edit-posts', 'publish-posts'])) {
 }
 ```
 
+### Hierarchical Organizations
+
+Create organization hierarchies with permission inheritance:
+
+```php
+use Kiamars\RbacArchitect\Models\Organization;
+
+// Create organization hierarchy
+$company = Organization::create(['name' => 'Acme Corp', 'type' => 'company']);
+$engineering = Organization::create([
+    'name' => 'Engineering Department',
+    'parent_id' => $company->id,
+    'type' => 'department'
+]);
+$backend = Organization::create([
+    'name' => 'Backend Team',
+    'parent_id' => $engineering->id,
+    'type' => 'team'
+]);
+
+// Add user as employee
+$user->joinOrganization($engineering, 'Senior Developer');
+
+// Assign role with organization context
+$user->assignRole('manager', $engineering);
+
+// Check permission with hierarchy inheritance
+$user->hasPermissionInOrganization('manage-projects', $backend); // Inherits from parent
+
+// Check organization membership
+$user->isMemberOf($engineering); // true
+
+// Leave organization
+$user->leaveOrganization($engineering);
+
+// Get all user's organizations
+$organizations = $user->organizations;
+
+// Get organization hierarchy
+$ancestors = $engineering->ancestors(); // [company]
+$descendants = $engineering->descendants(); // [backend team]
+```
+
+### User Types
+
+Support for different user types:
+
+```php
+// Create system user (admin/super user)
+$admin = User::create([
+    'name' => 'Admin',
+    'email' => 'admin@example.com',
+    'user_type' => 'system'
+]);
+
+// Create site user (regular user)
+$user = User::create([
+    'name' => 'John Doe',
+    'email' => 'john@example.com',
+    'user_type' => 'site'
+]);
+
+// Check user type
+if ($user->isSystemUser()) {
+    // System user logic
+}
+
+if ($user->isSiteUser()) {
+    // Site user logic
+}
+```
+
 ## Database Schema
 
 ### Roles Table
@@ -319,6 +393,17 @@ $user->revokeAllPermissions()
 
 // Root mode
 $user->isRoot(): bool
+
+// Organization methods
+$user->joinOrganization($organization, ?string $position = null)
+$user->leaveOrganization($organization)
+$user->isMemberOf($organization): bool
+$user->hasPermissionInOrganization(string $permission, $organization, bool $checkHierarchy = true): bool
+$user->organizations() // BelongsToMany relationship
+
+// User type methods
+$user->isSystemUser(): bool
+$user->isSiteUser(): bool
 ```
 
 ## Testing

@@ -124,4 +124,111 @@ trait HasRbac
             'updated_at' => now(),
         ]);
     }
+
+    /**
+     * Get all organizations this user belongs to.
+     */
+    public function organizations()
+    {
+        return $this->belongsToMany(
+            'Kiamars\RbacArchitect\Models\Organization',
+            'organization_employees',
+            'user_id',
+            'organization_id'
+        )->withPivot('position', 'is_active')->withTimestamps();
+    }
+
+    /**
+     * Join an organization.
+     */
+    public function joinOrganization($organization, $position = null)
+    {
+        if (is_numeric($organization)) {
+            $organization = \Kiamars\RbacArchitect\Models\Organization::findOrFail($organization);
+        }
+
+        $this->organizations()->attach($organization->id, [
+            'position' => $position,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * Leave an organization.
+     */
+    public function leaveOrganization($organization)
+    {
+        if (is_numeric($organization)) {
+            $organization = \Kiamars\RbacArchitect\Models\Organization::findOrFail($organization);
+        }
+
+        $this->organizations()->detach($organization->id);
+
+        return $this;
+    }
+
+    /**
+     * Check if user is a member of an organization.
+     */
+    public function isMemberOf($organization): bool
+    {
+        if (is_numeric($organization)) {
+            $organizationId = $organization;
+        }
+        else {
+            $organizationId = $organization->id;
+        }
+
+        return $this->organizations()->where('organization_id', $organizationId)->exists();
+    }
+
+    /**
+     * Check if user has permission in organization or its ancestors.
+     */
+    public function hasPermissionInOrganization($permission, $organization, $checkHierarchy = true): bool
+    {
+        if ($this->isRoot()) {
+            return true;
+        }
+
+        if (is_numeric($organization)) {
+            $organization = \Kiamars\RbacArchitect\Models\Organization::findOrFail($organization);
+        }
+
+        // Check permission in current organization
+        if ($this->hasPermissionTo($permission, $organization)) {
+            return true;
+        }
+
+        // Check hierarchy if enabled
+        if ($checkHierarchy) {
+            foreach ($organization->ancestors() as $ancestor) {
+                if ($this->hasPermissionTo($permission, $ancestor)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user is a system user.
+     */
+    public function isSystemUser(): bool
+    {
+        return $this->user_type === 'system';
+    }
+
+    /**
+     * Check if user is a site user.
+     */
+    public function isSiteUser(): bool
+    {
+        return $this->user_type === 'site';
+    }
 }
