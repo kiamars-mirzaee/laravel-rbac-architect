@@ -8,15 +8,14 @@ A flexible and powerful Role-Based Access Control (RBAC) system for Laravel with
 
 ## Features
 
-- 🎯 **Context-Based Permissions** - Scope roles and permissions to specific models (Projects, Organizations, Sites)
-- 🏢 **Hierarchical Organizations** - Support for organization hierarchies with permission inheritance
+- 🏢 **Hierarchical Partners** - Support for partner hierarchies with permission inheritance
 - ⏰ **Temporal Logic** - Set activation and expiration dates for role/permission assignments
 - 👑 **Root Mode** - Built-in superuser support that bypasses all permission checks
 - 🔄 **Polymorphic Relationships** - Apply permissions to any model type
 - 🛡️ **Middleware Protection** - Easy route protection with context-aware middleware
 - 🎨 **Flexible Architecture** - Easy to extend and customize
 - 📊 **Many-to-Many Support** - Users can have multiple roles and permissions
-- 👥 **User Types** - Support for system users and site users
+- 👥 **User Types** - Support for system users and site users via Enum
 
 ## Installation
 
@@ -174,8 +173,8 @@ Assign permissions directly without roles:
 $user->assignPermission('view-reports');
 
 // Context-specific permission
-$organization = Organization::find(1);
-$user->assignPermission('manage-billing', $organization);
+$partner = Partner::find(1);
+$user->assignPermission('manage-billing', $partner);
 ```
 
 ### Checking Multiple Permissions
@@ -192,66 +191,68 @@ if ($user->hasAllPermissions(['edit-posts', 'publish-posts'])) {
 }
 ```
 
-### Hierarchical Organizations
+### Hierarchical Partners
 
-Create organization hierarchies with permission inheritance:
+Create partner hierarchies with permission inheritance:
 
 ```php
-use Kiamars\RbacArchitect\Models\Organization;
+use Kiamars\RbacArchitect\Models\Partner;
 
-// Create organization hierarchy
-$company = Organization::create(['name' => 'Acme Corp', 'type' => 'company']);
-$engineering = Organization::create([
+// Create partner hierarchy
+$company = Partner::create(['name' => 'Acme Corp', 'type' => 'company']);
+$engineering = Partner::create([
     'name' => 'Engineering Department',
     'parent_id' => $company->id,
     'type' => 'department'
 ]);
-$backend = Organization::create([
+$backend = Partner::create([
     'name' => 'Backend Team',
     'parent_id' => $engineering->id,
     'type' => 'team'
 ]);
 
 // Add user as employee
-$user->joinOrganization($engineering, 'Senior Developer');
+$user->joinPartner($engineering, 'Senior Developer');
 
-// Assign role with organization context
+// Assign role with partner context
 $user->assignRole('manager', $engineering);
 
 // Check permission with hierarchy inheritance
-$user->hasPermissionInOrganization('manage-projects', $backend); // Inherits from parent
+$user->hasPermissionInPartner('manage-projects', $backend); // Inherits from parent
 
-// Check organization membership
-$user->isMemberOf($engineering); // true
+// Check partner membership
+$user->isMemberOfPartner($engineering); // true
 
-// Leave organization
-$user->leaveOrganization($engineering);
+// Leave partner
+$user->leavePartner($engineering);
 
-// Get all user's organizations
-$organizations = $user->organizations;
+// Get all user's partners
+$partners = $user->partners;
 
-// Get organization hierarchy
+// Get partner hierarchy
 $ancestors = $engineering->ancestors(); // [company]
 $descendants = $engineering->descendants(); // [backend team]
 ```
 
 ### User Types
 
-Support for different user types:
+Support for different user types via Enum:
 
 ```php
+use Kiamars\RbacArchitect\Enums\UserType;
+
 // Create system user (admin/super user)
 $admin = User::create([
     'name' => 'Admin',
     'email' => 'admin@example.com',
-    'user_type' => 'system'
+    'user_type' => UserType::SYSTEM
 ]);
 
 // Create site user (regular user)
 $user = User::create([
     'name' => 'John Doe',
     'email' => 'john@example.com',
-    'user_type' => 'site'
+    'user_type' => UserType::SITE
 ]);
 
 // Check user type
@@ -325,9 +326,9 @@ Use any model as a context:
 $site = Site::find(1);
 $user->assignRole('site-admin', $site);
 
-// Organization-specific permissions
-$organization = Organization::find(1);
-$user->assignPermission('manage-members', $organization);
+// Partner-specific permissions
+$partner = Partner::find(1);
+$user->assignPermission('manage-members', $partner);
 
 // Department-specific permissions
 $department = Department::find(1);
@@ -394,17 +395,18 @@ $user->revokeAllPermissions()
 // Root mode
 $user->isRoot(): bool
 
-// Organization methods
-$user->joinOrganization($organization, ?string $position = null)
-$user->leaveOrganization($organization)
-$user->isMemberOf($organization): bool
-$user->hasPermissionInOrganization(string $permission, $organization, bool $checkHierarchy = true): bool
-$user->organizations() // BelongsToMany relationship
+// Partner methods
+$user->joinPartner($partner, ?string $position = null)
+$user->leavePartner($partner)
+$user->isMemberOfPartner($partner): bool
+$user->hasPermissionInPartner(string $permission, $partner, bool $checkHierarchy = true): bool
+$user->partners() // BelongsToMany relationship
 
 // User type methods
 $user->isSystemUser(): bool
 $user->isSiteUser(): bool
 ```
+
 
 ## Testing
 

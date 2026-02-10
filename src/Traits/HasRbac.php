@@ -126,28 +126,28 @@ trait HasRbac
     }
 
     /**
-     * Get all organizations this user belongs to.
+     * Get all partners this user belongs to.
      */
-    public function organizations()
+    public function partners()
     {
         return $this->belongsToMany(
-            'Kiamars\RbacArchitect\Models\Organization',
-            'organization_employees',
+            'Kiamars\RbacArchitect\Models\Partner',
+            'partner_employees',
             'user_id',
-            'organization_id'
+            'partner_id'
         )->withPivot('position', 'is_active')->withTimestamps();
     }
 
     /**
-     * Join an organization.
+     * Join a partner.
      */
-    public function joinOrganization($organization, $position = null)
+    public function joinPartner($partner, $position = null)
     {
-        if (is_numeric($organization)) {
-            $organization = \Kiamars\RbacArchitect\Models\Organization::findOrFail($organization);
+        if (is_numeric($partner)) {
+            $partner = \Kiamars\RbacArchitect\Models\Partner::findOrFail($partner);
         }
 
-        $this->organizations()->attach($organization->id, [
+        $this->partners()->attach($partner->id, [
             'position' => $position,
             'is_active' => true,
             'created_at' => now(),
@@ -158,55 +158,55 @@ trait HasRbac
     }
 
     /**
-     * Leave an organization.
+     * Leave a partner.
      */
-    public function leaveOrganization($organization)
+    public function leavePartner($partner)
     {
-        if (is_numeric($organization)) {
-            $organization = \Kiamars\RbacArchitect\Models\Organization::findOrFail($organization);
+        if (is_numeric($partner)) {
+            $partner = \Kiamars\RbacArchitect\Models\Partner::findOrFail($partner);
         }
 
-        $this->organizations()->detach($organization->id);
+        $this->partners()->detach($partner->id);
 
         return $this;
     }
 
     /**
-     * Check if user is a member of an organization.
+     * Check if user is a member of a partner.
      */
-    public function isMemberOf($organization): bool
+    public function isMemberOfPartner($partner): bool
     {
-        if (is_numeric($organization)) {
-            $organizationId = $organization;
+        if (is_numeric($partner)) {
+            $partnerId = $partner;
         }
         else {
-            $organizationId = $organization->id;
+            $partnerId = $partner->id;
         }
 
-        return $this->organizations()->wherePivot('organization_id', $organizationId)->exists();
+        return $this->partners()->withPivot('partner_id', $partnerId)->exists();
     }
 
     /**
-     * Check if user has permission in organization or its ancestors.
+     * Check if user has permission in partner or its ancestors.
      */
-    public function hasPermissionInOrganization($permission, $organization, $checkHierarchy = true): bool
+    public function hasPermissionInPartner($permission, $partner, $checkHierarchy = true): bool
     {
         if ($this->isRoot()) {
             return true;
         }
 
-        if (is_numeric($organization)) {
-            $organization = \Kiamars\RbacArchitect\Models\Organization::findOrFail($organization);
+        if (is_numeric($partner)) {
+            $partner = \Kiamars\RbacArchitect\Models\Partner::findOrFail($partner);
         }
 
-        // Check permission in current organization
-        if ($this->hasPermissionTo($permission, $organization)) {
+        // Check permission in current partner
+        if ($this->hasPermissionTo($permission, $partner)) {
             return true;
         }
 
         // Check hierarchy if enabled
         if ($checkHierarchy) {
-            foreach ($organization->ancestors() as $ancestor) {
+            foreach ($partner->ancestors() as $ancestor) {
                 if ($this->hasPermissionTo($permission, $ancestor)) {
                     return true;
                 }
@@ -221,7 +221,8 @@ trait HasRbac
      */
     public function isSystemUser(): bool
     {
-        return $this->user_type === 'system';
+        return $this->user_type === \Kiamars\RbacArchitect\Enums\UserType::SYSTEM->value ||
+            $this->user_type === \Kiamars\RbacArchitect\Enums\UserType::SYSTEM;
     }
 
     /**
@@ -229,6 +230,7 @@ trait HasRbac
      */
     public function isSiteUser(): bool
     {
-        return $this->user_type === 'site';
+        return $this->user_type === \Kiamars\RbacArchitect\Enums\UserType::SITE->value ||
+            $this->user_type === \Kiamars\RbacArchitect\Enums\UserType::SITE;
     }
 }

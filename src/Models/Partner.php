@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Organization extends Model
+class Partner extends Model
 {
     protected $fillable = [
         'name',
@@ -18,7 +18,7 @@ class Organization extends Model
     ];
 
     /**
-     * Get the business organization.
+     * Get the business partner.
      */
     public static function getBusiness(): ?self
     {
@@ -26,19 +26,19 @@ class Organization extends Model
     }
 
     /**
-     * Get the parent organization.
+     * Get the parent partner.
      */
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(Organization::class , 'parent_id');
+        return $this->belongsTo(Partner::class , 'parent_id');
     }
 
     /**
-     * Get child organizations.
+     * Get child partners.
      */
     public function children(): HasMany
     {
-        return $this->hasMany(Organization::class , 'parent_id');
+        return $this->hasMany(Partner::class , 'parent_id');
     }
 
     /**
@@ -73,31 +73,31 @@ class Organization extends Model
     }
 
     /**
-     * Get all employees (users) of this organization.
+     * Get all employees (users) of this partner.
      */
     public function employees(): BelongsToMany
     {
         return $this->belongsToMany(
             config('auth.providers.users.model'),
-            'organization_employees',
-            'organization_id',
+            'partner_employees',
+            'partner_id',
             'user_id'
         )->withPivot('position', 'is_active')->withTimestamps();
     }
 
     /**
-     * Check if this organization is a descendant of another.
+     * Check if this partner is a descendant of another.
      */
-    public function isDescendantOf(Organization $organization): bool
+    public function isDescendantOf(Partner $partner): bool
     {
-        return in_array($organization->id, array_map(fn($o) => $o->id, $this->ancestors()));
+        return in_array($partner->id, array_map(fn($p) => $p->id, $this->ancestors()));
     }
 
     /**
-     * Check if this organization is an ancestor of another.
+     * Check if this partner is an ancestor of another.
      */
-    public function isAncestorOf(Organization $organization): bool
+    public function isAncestorOf(Partner $partner): bool
     {
-        return in_array($organization->id, array_map(fn($o) => $o->id, $this->descendants()));
+        return in_array($partner->id, array_map(fn($p) => $p->id, $this->descendants()));
     }
 }
