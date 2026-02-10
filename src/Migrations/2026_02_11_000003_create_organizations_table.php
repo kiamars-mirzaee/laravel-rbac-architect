@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->foreignId('parent_id')->nullable()->constrained('organizations')->onDelete('cascade');
             $table->string('type')->nullable(); // 'company', 'department', 'team', etc.
             $table->text('description')->nullable();
+            $table->boolean('is_business')->default(false);
             $table->timestamps();
 
             $table->index('parent_id');

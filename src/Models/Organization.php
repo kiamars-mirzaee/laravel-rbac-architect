@@ -14,7 +14,16 @@ class Organization extends Model
         'parent_id',
         'type',
         'description',
+        'is_business',
     ];
+
+    /**
+     * Get the business organization.
+     */
+    public static function getBusiness(): ?self
+    {
+        return self::where('is_business', true)->first();
+    }
 
     /**
      * Get the parent organization.

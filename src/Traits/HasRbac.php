@@ -183,7 +183,7 @@ trait HasRbac
             $organizationId = $organization->id;
         }
 
-        return $this->organizations()->where('organization_id', $organizationId)->exists();
+        return $this->organizations()->wherePivot('organization_id', $organizationId)->exists();
     }
 
     /**
