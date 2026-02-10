@@ -339,7 +339,7 @@ If you discover any security-related issues, please email kiamars.mirzaee@gmail.
 
 ## Credits
 
-- [Kiamars Mirzaee](https://github.com/kiamars-mirzaee)
+Made with ❤️ by [Architect PHP](https://github.com/architect-php)
 
 ## License
 
