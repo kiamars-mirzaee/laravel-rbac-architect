@@ -426,7 +426,7 @@ If you discover any security-related issues, please email kiamars.mirzaee@gmail.
 
 ## Credits
 
-Made with ❤️ by [Architect PHP](https://github.com/kiamars-mirzaee)
+Made with ❤️ by [Architect Systems](https://github.com/kiamars-mirzaee)
 
 ## License
 
